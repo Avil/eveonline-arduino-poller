@@ -32,8 +32,12 @@ var systemID;
 var systemName;
 var locationIntervalObject;
 
+/*Long term storage of the longTermToken if available*/
+var persistent = require('./longTermToken.json');
+
 /*Start calling stuff*/
 var request = require('request'); //Start the HTTP server
+var fs = require('fs');
 /*require('request-debug')(request); //DEBUG */
 
 var oAuthRequest = request.defaults({
@@ -70,6 +74,8 @@ board.on('ready', function() {
 });
 
 function reset() {
+    console.log("RESET >> Clearing refresh (long-term) token from file and from persistent state...");
+    fs.writeFile( "longTermToken.json", "{\"longTermToken\":\""+""+"\" }", "utf8");
     characterID = undefined;
     characterName = undefined;
     systemID = undefined;
@@ -168,13 +174,24 @@ function updateDisplay() {
         lcd.cursor(0, 0).print(characterName);
         lcd.cursor(1, 0).print(systemName);
     }
+    else {
+        console.log("LCD >> Not yet ready to print update. Navigate to http://localhost:3000/ to view current data.")
+    }
 }
 
 var express = require('express'),
     app = express();
 
 app.listen(3000, function () {
-    console.log('Monitor active on port 3000. Please navigate to http://localhost:3000/')
+    if (persistent.longTermToken) {
+        longTermToken = persistent.longTermToken;
+        console.log(">> AUTH: Successfully loaded existing long term token from storage. Restoring state...");
+        updateShortTermToken();
+        setTimeout(function () { updateCharacterIdentity(); }, 2000);
+    }
+    else {
+        console.log('Monitor active on port 3000. Please navigate to http://localhost:3000/ to log in for the first time.');
+    }
 });
 
 app.get('/', function (req, res) {
@@ -217,6 +234,8 @@ app.get('/callback', function (req, res) {
                 updateCharacterIdentity();
                 if (tokenIntervalObject) clearInterval(tokenIntervalObject);
                 tokenIntervalObject = setInterval(function() { updateShortTermToken() }, (body.expires_in*1000) - 5000);
+                console.log("AUTH >> Writing refresh (long-term) token to file for persistent state...");
+                fs.writeFile( "longTermToken.json", "{\"longTermToken\":\""+longTermToken+"\" }", "utf8");
                 res.redirect("/");
             }
         );

@@ -4,11 +4,12 @@
   "description": "https://www.reddit.com/r/Eve/comments/5hus53/building_my_internet_spaceship_control_lighting/db39uze/?utm_content=permalink&utm_medium=front&utm_source=reddit&utm_name=Eve",
   "main": "app.js",
   "dependencies": {
+    "express": "^4.14.0",
     "johnny-five": "^0.10.6",
     "request": "^2.79.0"
   },
   "devDependencies": {},
-  "repository": "avil/eveonline-arduino-poller"
+  "repository": "avil/eveonline-arduino-poller",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
